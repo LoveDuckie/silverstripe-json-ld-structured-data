@@ -1,6 +1,6 @@
 {
-    "name": "silverstripe-module/skeleton",
-    "description": "A skeleton for SilverStripe modules.",
+    "name": "loveduckie/silverstripe-json-ld-structured-data",
+    "description": "A module for conveniently describing JSON-LD structured data.",
     "type": "silverstripe-vendormodule",
     "keywords": [
         "silverstripe",
@@ -17,8 +17,8 @@
     },
     "autoload": {
         "psr-4": {
-            "SilverStripeModule\\Skeleton\\": "src/",
-            "SilverStripeModule\\Skeleton\\Tests\\": "tests/"
+            "LoveDuckie\\SilverStripe\\": "src/",
+            "LoveDuckie\\SilverStripe\\Tests\\": "tests/"
         }
     },
     "extra": {

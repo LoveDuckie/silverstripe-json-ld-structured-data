@@ -1,0 +1,6 @@
+---
+Name: silverstripe-json-ld-structured-data
+---
+SilverStripe\CMS\Model\SiteTree:
+  extensions:
+    - LoveDuckie\SilverStripe\Extensions\JsonLDStructuredDataExtension
