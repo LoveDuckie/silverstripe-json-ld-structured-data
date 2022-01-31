@@ -1,4 +1,4 @@
-# silverstripe-json-ld-structure-data
+# silverstripe-json-ld-structured-data
 
 A SilverStripe module for conveniently injecting [JSON-LD](https://json-ld.org/) meta data into the header of each rendered page in SilverStripe.
 
