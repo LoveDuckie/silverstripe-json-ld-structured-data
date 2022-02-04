@@ -17,8 +17,8 @@
     },
     "autoload": {
         "psr-4": {
-            "LoveDuckie\\SilverStripe\\": "src/",
-            "LoveDuckie\\SilverStripe\\Tests\\": "tests/"
+            "LoveDuckie\\SilverStripe\\JsonLDStructuredData\\": "src/",
+            "LoveDuckie\\SilverStripe\\JsonLDStructuredData\\Tests\\": "tests/"
         }
     },
     "extra": {
@@ -30,5 +30,11 @@
         ]
     },
     "minimum-stability": "dev",
-    "prefer-stable": true
+    "prefer-stable": true,
+    "config": {
+        "allow-plugins": {
+            "composer/installers": true,
+            "silverstripe/vendor-plugin": true
+        }
+    }
 }
