@@ -4,6 +4,8 @@ A SilverStripe module for conveniently injecting [JSON-LD](https://json-ld.org/)
 
 For more information on "[JSON-LD structured data](https://developers.google.com/search/docs/advanced/structured-data/intro-structured-data)", please refer to the Google Developer pages.
 
+[Read more information here about the motivations behind this SilverStripe module.](https://theloveduckie.codes/blog/silverstripe-and-json-ld-structured-data)
+
 ## Installation
 
 Here is a composer command to create a new module project. Ensure you read the
