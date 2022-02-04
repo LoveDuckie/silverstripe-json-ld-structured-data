@@ -19,9 +19,6 @@ composer require loveduckie/silverstripe-json-ld-structured-data
 * SilverStripe ^4.0
 * [Yarn](https://yarnpkg.com/lang/en/), [NodeJS](https://nodejs.org/en/) (6.x) and [npm](https://npmjs.com) (for building
   frontend assets)
-* Other module
-* Other server requirement
-* Etc
 
 ## Maintainers
  * Luc Shelton <lucshelton@gmail.com>
@@ -33,19 +30,17 @@ Add links into your docs/<language> folder here unless your module only requires
 in that case, add here and remove the docs folder. You might use this as a quick table of content if you
 mhave multiple documentation pages.
     
-## Example configuration (optional)
-If your module makes use of the config API in SilverStripe it's a good idea to provide an example config here that will get the module working out of the box and expose the user to the possible configuration options.
-
-Provide a yaml code example where possible.
+## Configuration
+    
+The extensions in this module will automatically inject itself into the SiteTree type. Refer to the adopted configuration below.
 
 ```yaml
-
-Page:
-  config_option: true
-  another_config:
-    - item1
-    - item2
-  
+---
+Name: silverstripe-json-ld-structured-data
+---
+SilverStripe\CMS\Model\SiteTree:
+  extensions:
+    - LoveDuckie\SilverStripe\Extensions\JsonLDStructuredDataExtension
 ```
 
 A useful skeleton to more easily create a [Silverstripe Module](https://docs.silverstripe.org/en/4/developer_guides/extending/modules/) that conform to the
