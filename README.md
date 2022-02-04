@@ -1,9 +1,11 @@
 # silverstripe-json-ld-structured-data
 
-A SilverStripe module for conveniently injecting [JSON-LD](https://json-ld.org/) meta data into the header of each rendered page in SilverStripe.
+A SilverStripe module for conveniently injecting [JSON-LD](https://json-ld.org/) metadata into the header of each rendered page in SilverStripe.
+
+For more information on "[JSON-LD structured data](https://developers.google.com/search/docs/advanced/structured-data/intro-structured-data)", please refer to the Google Developer pages.
 
 ## Installation
-Add some installation instructions here, having a 1 line composer copy and paste is useful. 
+
 Here is a composer command to create a new module project. Ensure you read the
 ['publishing a module'](https://docs.silverstripe.org/en/developer_guides/extending/how_tos/publish_a_module/) guide
 and update your module's composer.json to designate your code as a SilverStripe module. 
@@ -88,12 +90,6 @@ project's composer.json, pointing to the private repository URL.
 
 ## License
 See [License](license.md)
-
-We have included a 3-clause BSD license you can use as a default. We advocate for the BSD license as 
-it is one of the most permissive and open licenses.
-
-Feel free to alter the [license.md](license.md) to suit if you wan to use an alternative license.
-You can use [choosealicense.com](http://choosealicense.com) to help pick a suitable license for your project.
  
 ## Bugtracker
 Bugs are tracked in the issues section of this repository. Before submitting an issue please read over 
