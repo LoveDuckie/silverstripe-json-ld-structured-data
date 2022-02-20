@@ -2,6 +2,7 @@
     "name": "loveduckie/silverstripe-json-ld-structured-data",
     "description": "A module for conveniently describing JSON-LD structured data.",
     "type": "silverstripe-vendormodule",
+    "homepage": "https://github.com/LoveDuckie/silverstripe-json-ld-structured-data",
     "keywords": [
         "silverstripe",
         "CMS"
