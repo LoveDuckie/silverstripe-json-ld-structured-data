@@ -23,14 +23,10 @@ composer require loveduckie/silverstripe-json-ld-structured-data
   frontend assets)
 
 ## Maintainers
- * Luc Shelton <lucshelton@gmail.com>
+ * LoveDuckie <loveduckie@gmail.com>
 
 ## Documentation
  * [Documentation readme](docs/en/readme.md)
-
-Add links into your docs/<language> folder here unless your module only requires minimal documentation 
-in that case, add here and remove the docs folder. You might use this as a quick table of content if you
-mhave multiple documentation pages.
     
 ## Configuration
     
@@ -57,26 +53,6 @@ other places where you need to customise it
 
 Below is a template of the sections of your readme.md you should ideally include to met the Module Standard 
 and help others make use of your modules.
-
-### Steps to prepare this module for your own use:
-
-- Clone this repository into a folder
-- Add your name/organisation to `LICENSE.md`
-- Update this readme with information about your module. Ensure sections that aren't relevant are deleted and 
-placeholders are edited where relevant
-- Review the README files in the various provided directories. You should replace these with `.gitkeep` or delete the 
-directories
-- Update the module's `composer.json` with your requirements and package name
-- Update (or remove) `package.json` with your requirements and package name. Run `yarn` (or remove `yarn.lock`) to 
-ensure dependencies resolve correctly
-- Clear the git history by running `rm -rf .git && git init`
-- Add and push to a VCS repository
-- Either [publish](https://getcomposer.org/doc/02-libraries.md#publishing-to-packagist) the module on packagist.org, or add a [custom repository](https://getcomposer.org/doc/02-libraries.md#publishing-to-a-vcs) to your main `composer.json`
-- Require the module in your main `composer.json`
-- If you need to build a JS client
-  - Ensure that `vendor/silverstripe/admin` is installed with `composer install --prefer-source` instead of the default `--prefer-dist`.  You may need to first remove the module from the vendor folder.
-  - Install third party dependencies in your module AND in `vendor/silverstripe/admin` by running `yarn install` in both locations
-- Start developing your module!
 
 ```
 composer require silverstripe-module/skeleton 4.x-dev
