@@ -30,8 +30,7 @@ class JsonLDStructuredDataExtension extends DataExtension
 
     public function PageStructuredData()
     {
-        $structuredDataContainer = array();
-        $structuredDataContainer["@context"] = JsonLDStructuredDataExtension::SCHEMA_URL;
+        $structuredDataContainer = [];
         return $this->InjectedStructuredData($structuredDataContainer);
     }
 
@@ -62,7 +61,7 @@ class JsonLDStructuredDataExtension extends DataExtension
             ];
         }
         
-        self::setBreadcrumbs(array_reverse($breadcrumbs));
+        return self::setBreadcrumbs(array_reverse($breadcrumbs));
     }
 
     /**
@@ -101,7 +100,7 @@ class JsonLDStructuredDataExtension extends DataExtension
             ];
             $count++;
         }
-        self::$data[] = $structuredBreadcrumbs;
+        return $structuredBreadcrumbs;
     }
 
     public function InjectedStructuredData(array &$structuredDataContainer)
@@ -110,6 +109,12 @@ class JsonLDStructuredDataExtension extends DataExtension
             throw new Exception("The structured data container is invalid or null");
         }
         $this->owner->extend('onInjectStructuredData', $structuredDataContainer);
+        
+        $structuredDataContainer[] = JsonLDStructuredDataExtension::generateBreadcrumbsFromSiteTree($this->owner);
+        for($i = 0; $i < count($structuredDataContainer); $i++) {
+            $structuredDataContainer[$i]["@context"] = JsonLDStructuredDataExtension::SCHEMA_URL;
+        }
+        
         $jsonSerializationFlags = JSON_UNESCAPED_SLASHES;
 
         // Save on whitespace if we're in production. Formatting only useful for debugging purposes.
