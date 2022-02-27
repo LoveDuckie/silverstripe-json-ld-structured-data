@@ -5,9 +5,13 @@ namespace LoveDuckie\SilverStripe\JsonLDStructuredData\Extensions;
 use Exception;
 use SilverStripe\ORM\DataExtension;
 use SilverStripe\Control\Director;
+use SilverStripe\Core\Config\Configurable;
+use SilverStripe\Core\Config\Config;
 
 class JsonLDStructuredDataExtension extends DataExtension
 {
+    use Configurable;
+
     private const SCHEMA_URL = "https://schema.org/";
 
     private static $casting = [
@@ -100,6 +104,9 @@ class JsonLDStructuredDataExtension extends DataExtension
             ];
             $count++;
         }
+        
+        $breadCrumbsName = Config::inst()->get(JsonLDStructuredDataExtension::class, 'breadcrumbs_list_name');
+        $structuredBreadcrumbs["name"] = $breadCrumbsName;
         return $structuredBreadcrumbs;
     }
 
@@ -108,9 +115,8 @@ class JsonLDStructuredDataExtension extends DataExtension
         if (!isset($structuredDataContainer)) {
             throw new Exception("The structured data container is invalid or null");
         }
-        $this->owner->extend('onInjectStructuredData', $structuredDataContainer);
-        
         $structuredDataContainer[] = JsonLDStructuredDataExtension::generateBreadcrumbsFromSiteTree($this->owner);
+        $this->owner->extend('onInjectStructuredData', $structuredDataContainer);
         for($i = 0; $i < count($structuredDataContainer); $i++) {
             $structuredDataContainer[$i]["@context"] = JsonLDStructuredDataExtension::SCHEMA_URL;
         }
