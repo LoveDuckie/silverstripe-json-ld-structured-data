@@ -2,15 +2,19 @@
 
 namespace LoveDuckie\SilverStripe\JsonLDStructuredData\Extensions;
 
+use Exception;
 use SilverStripe\ORM\DataExtension;
-use SilverStripe\SiteConfig\SiteConfig;
+use SilverStripe\Control\Director;
 
 class JsonLDStructuredDataExtension extends DataExtension
 {
-    private const CONFIG_CLASS_NAME = "LoveDuckie\\SilverStripe\\JsonLDStructuredDataExtension";
     private const SCHEMA_URL = "https://schema.org/";
 
-    // Attempt to invoke the static function on the type of the owner object if it exists.
+    private static $casting = [
+        'PageStructuredData' => 'HTMLFragment'
+    ];
+
+    // Invoke the recognised structured data function for any type that this extends.
     public function InvokeMetadataFunction()
     {
         if ($this->owner != null) {
@@ -19,29 +23,103 @@ class JsonLDStructuredDataExtension extends DataExtension
         if (!isset($this->owner) || !isset($this->ownerTypeName)) {
             return;
         }
-        if (!method_exists($ownerTypeName,'InjectStructuredData')) {
+        if (!method_exists($ownerTypeName, 'InjectStructuredData')) {
             return;
         }
     }
 
-    // Use this for injecting stuctured data into the page
     public function PageStructuredData()
     {
         $structuredDataContainer = array();
-        if ($structuredDataContainer == null || !isset($structuredDataContainer)) {
-            throw new Exception("The structured data container was not defined.");
-        }
-
         $structuredDataContainer["@context"] = JsonLDStructuredDataExtension::SCHEMA_URL;
-        return $structuredDataContainer;
+        return $this->InjectedStructuredData($structuredDataContainer);
     }
 
-    // Parent function for getting relevant encoding information
-    public function InjectJsonLDStructuredData(array $structuredDataContainer)
-    {
-        $siteConfig = SiteConfig::get();
-        $serializedJson = json_encode($structuredDataContainer);
+    private static $data = [];
 
+    /**
+     * Generate the breadcrumbs based on the sitetree
+     * @param type $page
+     * @param type $includeHome
+     * @param type $homeTitle
+     */
+    public static function generateBreadcrumbsFromSiteTree($page, $includeHome = true, $homeTitle = 'Home') {
+        $breadcrumbs = [];
+        $startingPage = $page;
+        
+        while ($page) {
+            $breadcrumbs[] = [
+                'title' => $page->Title,
+                'link' => $page->AbsoluteLink()
+            ];
+            $page = $page->ParentID ? $page->Parent() : false;
+        }
+        
+        if ($includeHome && $startingPage->URLSegment != 'home') {
+            $breadcrumbs[] = [
+                'title' => $homeTitle,
+                'link' => Director::absoluteBaseURL()
+            ];
+        }
+        
+        self::setBreadcrumbs(array_reverse($breadcrumbs));
+    }
+
+    /**
+     * Set the breadcrumbs
+     * Example array:
+     * [
+     *  [
+     *      'title' => 'Home',
+     *      'link' => 'https://example.com'
+     *  ],
+     *  [
+     *      'title' => 'Blog',
+     *      'link' => 'https://example.com/blog'
+     *  ],
+     *  [
+     *      'title' => 'Blog item',
+     *      'link' => 'https://example.com/blog/item'
+     *  ]
+     * ]
+     * @param array $breadcrumbs
+     */
+    public static function setBreadcrumbs($breadcrumbs) {
+        $structuredBreadcrumbs = [
+            '@type' => 'BreadcrumbList',
+            'itemListElement' => []
+        ];
+        $count = 1;
+        foreach ($breadcrumbs as $breadcrumbItem) {
+            $structuredBreadcrumbs['itemListElement'][] = [
+                '@type' => 'ListItem',
+                'position' => $count,
+                'item' => [
+                    '@id' => $breadcrumbItem['link'],
+                    'name' => $breadcrumbItem['title']
+                ]
+            ];
+            $count++;
+        }
+        self::$data[] = $structuredBreadcrumbs;
+    }
+
+    public function InjectedStructuredData(array &$structuredDataContainer)
+    {
+        if (!isset($structuredDataContainer)) {
+            throw new Exception("The structured data container is invalid or null");
+        }
+        $this->owner->extend('onInjectStructuredData', $structuredDataContainer);
+        $jsonSerializationFlags = JSON_UNESCAPED_SLASHES;
+
+        // Save on whitespace if we're in production. Formatting only useful for debugging purposes.
+        if (Director::isTest() || Director::isDev()) {
+            $jsonSerializationFlags |= JSON_PRETTY_PRINT;
+        }
+        $serializedJson = json_encode($structuredDataContainer, $jsonSerializationFlags);
+        if (!isset($serializedJson)) {
+            throw new Exception("The serialized JSON is invalid or null");
+        }
         $metaDataOutput = <<< EOF
         <script type="application/ld+json">
             $serializedJson
