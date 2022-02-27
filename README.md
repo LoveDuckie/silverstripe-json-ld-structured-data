@@ -27,10 +27,6 @@ composer require loveduckie/silverstripe-json-ld-structured-data
 
 ## Documentation
  * [Documentation readme](docs/en/readme.md)
-
-Add links into your docs/<language> folder here unless your module only requires minimal documentation 
-in that case, add here and remove the docs folder. You might use this as a quick table of content if you
-mhave multiple documentation pages.
     
 ## Configuration
     
