@@ -106,7 +106,9 @@ class JsonLDStructuredDataExtension extends DataExtension
         }
         
         $breadCrumbsName = Config::inst()->get(JsonLDStructuredDataExtension::class, 'breadcrumbs_list_name');
+        $breadCrumbsDescription = Config::inst()->get(JsonLDStructuredDataExtension::class, 'breadcrumbs_list_description');
         $structuredBreadcrumbs["name"] = $breadCrumbsName;
+        $structuredBreadcrumbs["description"] = $$breadCrumbsDescription;
         return $structuredBreadcrumbs;
     }
 
