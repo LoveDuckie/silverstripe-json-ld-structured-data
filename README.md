@@ -37,16 +37,10 @@ SilverStripe\CMS\Model\SiteTree:
     - LoveDuckie\SilverStripe\Extensions\JsonLDStructuredDataExtension
 ```
 
-**Note:** When you have completed your module, submit it to Packagist or add it as a VCS repository to your
-project's composer.json, pointing to the private repository URL.
-
 ## License
 See [License](license.md)
  
 ## Bugtracker
-Bugs are tracked in the issues section of this repository. Before submitting an issue please read over 
-existing issues to ensure yours is unique. 
- 
 If the issue does look like a new bug:
  
  - Create a new issue
