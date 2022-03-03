@@ -118,7 +118,9 @@ class JsonLDStructuredDataExtension extends DataExtension
             throw new Exception("The structured data container is invalid or null");
         }
         $structuredDataContainer[] = JsonLDStructuredDataExtension::generateBreadcrumbsFromSiteTree($this->owner);
-        $this->owner->extend('onInjectStructuredData', $structuredDataContainer);
+        if ($this->owner) {
+            $this->owner->extend('onInjectStructuredData', $structuredDataContainer);
+        }
         for($i = 0; $i < count($structuredDataContainer); $i++) {
             $structuredDataContainer[$i]["@context"] = JsonLDStructuredDataExtension::SCHEMA_URL;
         }
