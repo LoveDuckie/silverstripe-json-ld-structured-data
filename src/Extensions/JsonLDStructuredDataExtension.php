@@ -7,6 +7,7 @@ use SilverStripe\ORM\DataExtension;
 use SilverStripe\Control\Director;
 use SilverStripe\Core\Config\Configurable;
 use SilverStripe\Core\Config\Config;
+use SilverStripe\SiteConfig\SiteConfig;
 
 class JsonLDStructuredDataExtension extends DataExtension
 {
@@ -18,7 +19,6 @@ class JsonLDStructuredDataExtension extends DataExtension
         'PageStructuredData' => 'HTMLFragment'
     ];
 
-    // Invoke the recognised structured data function for any type that this extends.
     public function InvokeMetadataFunction()
     {
         if ($this->owner != null) {
@@ -46,10 +46,11 @@ class JsonLDStructuredDataExtension extends DataExtension
      * @param type $includeHome
      * @param type $homeTitle
      */
-    public static function generateBreadcrumbsFromSiteTree($page, $includeHome = true, $homeTitle = 'Home') {
+    public static function generateBreadcrumbsFromSiteTree($page, $includeHome = true, $homeTitle = 'Home')
+    {
         $breadcrumbs = [];
         $startingPage = $page;
-        
+
         while ($page) {
             $breadcrumbs[] = [
                 'title' => $page->Title,
@@ -57,14 +58,14 @@ class JsonLDStructuredDataExtension extends DataExtension
             ];
             $page = $page->ParentID ? $page->Parent() : false;
         }
-        
+
         if ($includeHome && $startingPage->URLSegment != 'home') {
             $breadcrumbs[] = [
                 'title' => $homeTitle,
                 'link' => Director::absoluteBaseURL()
             ];
         }
-        
+
         return self::setBreadcrumbs(array_reverse($breadcrumbs));
     }
 
@@ -87,7 +88,8 @@ class JsonLDStructuredDataExtension extends DataExtension
      * ]
      * @param array $breadcrumbs
      */
-    public static function setBreadcrumbs($breadcrumbs) {
+    public static function setBreadcrumbs($breadcrumbs)
+    {
         $structuredBreadcrumbs = [
             '@type' => 'BreadcrumbList',
             'itemListElement' => []
@@ -104,11 +106,26 @@ class JsonLDStructuredDataExtension extends DataExtension
             ];
             $count++;
         }
-        
+
+        $siteConfig = SiteConfig::current_site_config();
+
+        $siteTitle = $siteConfig->Title;
+        $siteTagline = $siteConfig->Tagline;
+
+        $breadCrumbsName = $siteTitle;
+        $breadCrumbsDescription = $siteTagline;
+
+        $configInstance = Config::inst();
+        if (!isset($configInstance)) {
+            throw new Exception("The configuration instance is invalid or null");
+        }
+
         $breadCrumbsName = Config::inst()->get(JsonLDStructuredDataExtension::class, 'breadcrumbs_list_name');
         $breadCrumbsDescription = Config::inst()->get(JsonLDStructuredDataExtension::class, 'breadcrumbs_list_description');
+
         $structuredBreadcrumbs["name"] = $breadCrumbsName;
         $structuredBreadcrumbs["description"] = $breadCrumbsDescription;
+
         return $structuredBreadcrumbs;
     }
 
@@ -121,10 +138,10 @@ class JsonLDStructuredDataExtension extends DataExtension
         if ($this->owner) {
             $this->owner->extend('onInjectStructuredData', $structuredDataContainer);
         }
-        for($i = 0; $i < count($structuredDataContainer); $i++) {
+        for ($i = 0; $i < count($structuredDataContainer); $i++) {
             $structuredDataContainer[$i]["@context"] = JsonLDStructuredDataExtension::SCHEMA_URL;
         }
-        
+
         $jsonSerializationFlags = JSON_UNESCAPED_SLASHES;
 
         // Save on whitespace if we're in production. Formatting only useful for debugging purposes.
