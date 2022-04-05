@@ -8,6 +8,9 @@ use SilverStripe\Control\Director;
 use SilverStripe\Core\Config\Configurable;
 use SilverStripe\Core\Config\Config;
 use SilverStripe\SiteConfig\SiteConfig;
+use SilverStripe\CMS\Controllers\ContentController;
+
+use SilverStripe\CMS\Model\SiteTree;
 
 class JsonLDStructuredDataExtension extends DataExtension
 {
@@ -19,89 +22,91 @@ class JsonLDStructuredDataExtension extends DataExtension
         'PageStructuredData' => 'HTMLFragment'
     ];
 
-    public function InvokeMetadataFunction()
-    {
-        if ($this->owner != null) {
-            $ownerTypeName = get_class($this->owner);
-        }
-        if (!isset($this->owner) || !isset($this->ownerTypeName)) {
-            return;
-        }
-        if (!method_exists($ownerTypeName, 'InjectStructuredData')) {
-            return;
-        }
-    }
-
     public function PageStructuredData()
     {
         $structuredDataContainer = [];
         return $this->InjectedStructuredData($structuredDataContainer);
     }
 
-    private static $data = [];
-
-    /**
-     * Generate the breadcrumbs based on the sitetree
-     * @param type $page
-     * @param type $includeHome
-     * @param type $homeTitle
-     */
-    public static function generateBreadcrumbsFromSiteTree($page, $includeHome = true, $homeTitle = 'Home')
+    public static function generateBreadCrumbsFromController($controller)
     {
-        $breadcrumbs = [];
+        if (!($controller instanceof ContentController)) {
+            throw new Exception("The object specified is not a controller");
+        }
+
+        $breadCrumbs = [];
+        if ($controller->hasMethod('generateBreadCrumbs')) {
+            $controller->generateBreadCrumbs($breadCrumbs);
+            if (!is_array($breadCrumbs)) {
+                throw new Exception("The breadCrumbs specified are invalid or null");
+            }
+
+            return $breadCrumbs;
+        }
+
+        return null;
+    }
+
+    public static function generateBreadCrumbs($pageOrController)
+    {
+        if (!isset($pageOrController)) {
+            throw new Exception("The page or controller instance was not defined.");
+        }
+
+        $breadCrumbs = null;
+        if ($pageOrController instanceof ContentController) {
+            $breadCrumbs = static::generateBreadCrumbsFromController($pageOrController);
+        } else if ($pageOrController instanceof SiteTree) {
+            $breadCrumbs = static::generateBreadCrumbsFromSiteTree($pageOrController);
+        }
+
+        return $breadCrumbs;
+    }
+
+    public static function generateBreadCrumbsFromSiteTree($page, $includeHome = true, $homeTitle = 'Home')
+    {
+        $breadCrumbs = [];
         $startingPage = $page;
 
+        if ($startingPage->hasMethod('generateBreadCrumbs')) {
+            $startingPage->generateBreadCrumbs($breadCrumbs);
+        }
+
         while ($page) {
-            $breadcrumbs[] = [
-                'title' => $page->Title,
-                'link' => $page->AbsoluteLink()
+            $pageLink = $page->AbsoluteLink();
+            $pageTitle = $page->Title;
+            $breadCrumbs[] = [
+                'title' => $pageTitle,
+                'link' => $pageLink
             ];
             $page = $page->ParentID ? $page->Parent() : false;
         }
 
         if ($includeHome && $startingPage->URLSegment != 'home') {
-            $breadcrumbs[] = [
+            $breadCrumbs[] = [
                 'title' => $homeTitle,
                 'link' => Director::absoluteBaseURL()
             ];
         }
 
-        return self::setBreadcrumbs(array_reverse($breadcrumbs));
+        $generatedBreadCrumbs = self::setBreadCrumbs(array_reverse($breadCrumbs));
+        return $generatedBreadCrumbs;
     }
 
-    /**
-     * Set the breadcrumbs
-     * Example array:
-     * [
-     *  [
-     *      'title' => 'Home',
-     *      'link' => 'https://example.com'
-     *  ],
-     *  [
-     *      'title' => 'Blog',
-     *      'link' => 'https://example.com/blog'
-     *  ],
-     *  [
-     *      'title' => 'Blog item',
-     *      'link' => 'https://example.com/blog/item'
-     *  ]
-     * ]
-     * @param array $breadcrumbs
-     */
-    public static function setBreadcrumbs($breadcrumbs)
+    public static function setBreadCrumbs($breadCrumbs)
     {
-        $structuredBreadcrumbs = [
+        $structuredBreadCrumbs = [
             '@type' => 'BreadcrumbList',
             'itemListElement' => []
         ];
         $count = 1;
-        foreach ($breadcrumbs as $breadcrumbItem) {
-            $structuredBreadcrumbs['itemListElement'][] = [
+        foreach ($breadCrumbs as $breadCrumbItem) {
+            $structuredBreadCrumbs['itemListElement'][] = [
                 '@type' => 'ListItem',
                 'position' => $count,
                 'item' => [
-                    '@id' => $breadcrumbItem['link'],
-                    'name' => $breadcrumbItem['title']
+                    '@id' => $breadCrumbItem['link'],
+                    'name' => $breadCrumbItem['title']
                 ]
             ];
             $count++;
@@ -115,18 +120,19 @@ class JsonLDStructuredDataExtension extends DataExtension
         $breadCrumbsName = $siteTitle;
         $breadCrumbsDescription = $siteTagline;
 
-        $configInstance = Config::inst();
-        if (!isset($configInstance)) {
+        $config = Config::inst();
+
+        if (!isset($config)) {
             throw new Exception("The configuration instance is invalid or null");
         }
 
-        $breadCrumbsName = Config::inst()->get(JsonLDStructuredDataExtension::class, 'breadcrumbs_list_name');
-        $breadCrumbsDescription = Config::inst()->get(JsonLDStructuredDataExtension::class, 'breadcrumbs_list_description');
+        $breadCrumbsName = Config::inst()->get(JsonLDStructuredDataExtension::class, 'breadCrumbs_list_name');
+        $breadCrumbsDescription = Config::inst()->get(JsonLDStructuredDataExtension::class, 'breadCrumbs_list_description');
 
-        $structuredBreadcrumbs["name"] = $breadCrumbsName;
-        $structuredBreadcrumbs["description"] = $breadCrumbsDescription;
+        $structuredBreadCrumbs["name"] = $breadCrumbsName;
+        $structuredBreadCrumbs["description"] = $breadCrumbsDescription;
 
-        return $structuredBreadcrumbs;
+        return $structuredBreadCrumbs;
     }
 
     public function InjectedStructuredData(array &$structuredDataContainer)
@@ -134,17 +140,19 @@ class JsonLDStructuredDataExtension extends DataExtension
         if (!isset($structuredDataContainer)) {
             throw new Exception("The structured data container is invalid or null");
         }
-        $structuredDataContainer[] = JsonLDStructuredDataExtension::generateBreadcrumbsFromSiteTree($this->owner);
-        if ($this->owner) {
-            $this->owner->extend('onInjectStructuredData', $structuredDataContainer);
+
+        $pageOrController = Director::get_current_page();
+
+        if ($pageOrController) {
+            $structuredDataContainer[] = JsonLDStructuredDataExtension::generateBreadCrumbs($pageOrController);
+            $pageOrController->extend('onInjectStructuredData', $structuredDataContainer);
         }
+
         for ($i = 0; $i < count($structuredDataContainer); $i++) {
             $structuredDataContainer[$i]["@context"] = JsonLDStructuredDataExtension::SCHEMA_URL;
         }
 
         $jsonSerializationFlags = JSON_UNESCAPED_SLASHES;
-
-        // Save on whitespace if we're in production. Formatting only useful for debugging purposes.
         if (Director::isTest() || Director::isDev()) {
             $jsonSerializationFlags |= JSON_PRETTY_PRINT;
         }

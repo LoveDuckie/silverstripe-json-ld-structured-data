@@ -6,7 +6,7 @@ SilverStripe\CMS\Model\SiteTree:
     - LoveDuckie\SilverStripe\JsonLDStructuredData\Extensions\JsonLDStructuredDataExtension
 
 LoveDuckie\SilverStripe\JsonLDStructuredData\Extensions\JsonLDStructuredDataExtension:
-  breadcrumbs_list_name: 'Default Website Breadcrumbs'
+  breadcrumbs_list_name: 'Portfolio and Blog'
   breadcrumbs_list_description: 'The default breadcrumbs list for the website.'
   breadcrumbs_list_name_from_siteconfig_title: true
   breadcrumbs_list_description_from_siteconfig_tagline: true
