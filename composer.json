@@ -1,12 +1,28 @@
 {
     "name": "loveduckie/silverstripe-json-ld-structured-data",
-    "description": "A module for conveniently describing JSON-LD structured data.",
+    "description": "A module for conveniently injecting JSON-LD structured data into pages of a SilverStripe project.",
     "type": "silverstripe-vendormodule",
     "homepage": "https://github.com/LoveDuckie/silverstripe-json-ld-structured-data",
     "keywords": [
         "silverstripe",
+        "json-ld",
+        "structured-data",
+        "json-ld-structured-data",
+        "seo",
         "CMS"
     ],
+    "authors": [
+        {
+            "name": "Luc Shelton",
+            "email": "lucshelton@gmail.com",
+            "homepage": "https://www.lucshelton.com",
+            "role": "Developer"
+        }
+    ],
+    "support": {
+        "email": "lucshelton@gmail.com",
+        "issues": "http://github.com/LoveDuckie/silverstripe-json-ld-structured-data/issues"
+    },
     "license": "BSD-3-Clause",
     "require": {
         "silverstripe/framework": "^4.0",
