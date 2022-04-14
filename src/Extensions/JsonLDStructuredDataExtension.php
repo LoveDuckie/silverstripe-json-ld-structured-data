@@ -69,7 +69,7 @@ class JsonLDStructuredDataExtension extends DataExtension
         $startingPage = $page;
 
         if ($startingPage->hasMethod('generateBreadCrumbs')) {
-            $startingPage->generateBreadCrumbs($breadCrumbs);
+            $breadCrumbs = $startingPage->generateBreadCrumbs($breadCrumbs);
         }
 
         while ($page) {
@@ -126,8 +126,20 @@ class JsonLDStructuredDataExtension extends DataExtension
             throw new Exception("The configuration instance is invalid or null");
         }
 
-        $breadCrumbsName = Config::inst()->get(JsonLDStructuredDataExtension::class, 'breadCrumbs_list_name');
-        $breadCrumbsDescription = Config::inst()->get(JsonLDStructuredDataExtension::class, 'breadCrumbs_list_description');
+        $breadcrumbsList = self::getConfigProperty('breadcrumbs_list');
+
+        $breadCrumbsName = $breadcrumbsList['default_name'];
+        $breadCrumbsDescription = $breadcrumbsList['default_description'];
+
+        $useSiteConfigTitleAsName = $breadcrumbsList['use_siteconfig_title_as_name'];
+        $useSiteConfigTaglineAsDescription = $breadcrumbsList['use_siteconfig_tagline_as_description'];
+
+        if (empty($breadCrumbsName) || $useSiteConfigTitleAsName) {
+            $breadCrumbsName = $siteConfig->getWebsiteTitle();
+        }
+        if (empty($breadCrumbsDescription) || $useSiteConfigTaglineAsDescription) {
+            $breadCrumbsDescription = $siteConfig->Tagline;
+        }
 
         $structuredBreadCrumbs["name"] = $breadCrumbsName;
         $structuredBreadCrumbs["description"] = $breadCrumbsDescription;
@@ -135,16 +147,39 @@ class JsonLDStructuredDataExtension extends DataExtension
         return $structuredBreadCrumbs;
     }
 
+    private static function getConfigProperty(string $propertyName)
+    {
+        if (empty($propertyName)) {
+            throw new Exception("The name of the property was not defined. Unable to continue.");
+        }
+
+        return Config::inst()->get(JsonLDStructuredDataExtension::class, $propertyName);
+    }
+
     public function InjectedStructuredData(array &$structuredDataContainer)
     {
         if (!isset($structuredDataContainer)) {
             throw new Exception("The structured data container is invalid or null");
         }
+        $siteConfig = SiteConfig::current_site_config();
+
+        $tagsConfig = self::getConfigProperty('tags');
+        if ($tagsConfig['website']['enable']) {
+            $structuredDataContainer[] = [
+                "@type" => "WebSite",
+                "about" => [],
+                "url" => Director::absoluteBaseURL(),
+                "name" => $siteConfig->getWebsiteTitle(),
+                "description" => $siteConfig->Tagline
+            ];
+        }
 
         $pageOrController = Director::get_current_page();
 
         if ($pageOrController) {
-            $structuredDataContainer[] = JsonLDStructuredDataExtension::generateBreadCrumbs($pageOrController);
+            if ($tagsConfig['breadcrumbs']['enable']) {
+                $structuredDataContainer[] = JsonLDStructuredDataExtension::generateBreadCrumbs($pageOrController);
+            }
             $pageOrController->extend('onInjectStructuredData', $structuredDataContainer);
         }
 

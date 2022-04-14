@@ -4,9 +4,18 @@ Name: silverstripe-json-ld-structured-data
 SilverStripe\CMS\Model\SiteTree:
   extensions:
     - LoveDuckie\SilverStripe\JsonLDStructuredData\Extensions\JsonLDStructuredDataExtension
+SilverStripe\Security\Member:
+  extensions:
+    - LoveDuckie\SilverStripe\JsonLDStructuredData\Extensions\MemberJsonLDStructuredDataExtension
 
 LoveDuckie\SilverStripe\JsonLDStructuredData\Extensions\JsonLDStructuredDataExtension:
-  breadcrumbs_list_name: 'Portfolio and Blog'
-  breadcrumbs_list_description: 'The default breadcrumbs list for the website.'
-  breadcrumbs_list_name_from_siteconfig_title: true
-  breadcrumbs_list_description_from_siteconfig_tagline: true
+  breadcrumbs_list:
+    default_name: 'Portfolio and Blog'
+    default_description: 'My personal blog and portfolio.'
+    use_siteconfig_title_as_name: true
+    use_siteconfig_tagline_as_description: true
+  tags:
+    website:
+      enable: true
+    breadcrumbs:
+      enable: true
