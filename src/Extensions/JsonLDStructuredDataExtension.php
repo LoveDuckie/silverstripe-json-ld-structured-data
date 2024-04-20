@@ -135,7 +135,7 @@ class JsonLDStructuredDataExtension extends DataExtension
         $useSiteConfigTaglineAsDescription = $breadcrumbsList['use_siteconfig_tagline_as_description'];
 
         if (empty($breadCrumbsName) || $useSiteConfigTitleAsName) {
-            $breadCrumbsName = $siteConfig->getWebsiteTitle();
+            $breadCrumbsName = $siteTitle;
         }
         if (empty($breadCrumbsDescription) || $useSiteConfigTaglineAsDescription) {
             $breadCrumbsDescription = $siteConfig->Tagline;
@@ -163,14 +163,17 @@ class JsonLDStructuredDataExtension extends DataExtension
         }
         $siteConfig = SiteConfig::current_site_config();
 
+        $siteTitle = $siteConfig->Title;
+        $siteTagline = $siteConfig->Tagline;
+
         $tagsConfig = self::getConfigProperty('tags');
         if ($tagsConfig['website']['enable']) {
             $structuredDataContainer[] = [
                 "@type" => "WebSite",
                 "about" => [],
                 "url" => Director::absoluteBaseURL(),
-                "name" => $siteConfig->getWebsiteTitle(),
-                "description" => $siteConfig->Tagline
+                "name" => $siteTitle,
+                "description" => $siteTagLine
             ];
         }
 
