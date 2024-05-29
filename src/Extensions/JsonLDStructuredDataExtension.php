@@ -173,7 +173,7 @@ class JsonLDStructuredDataExtension extends DataExtension
                 "about" => [],
                 "url" => Director::absoluteBaseURL(),
                 "name" => $siteTitle,
-                "description" => $siteTagLine
+                "description" => $siteTagline
             ];
         }
 
