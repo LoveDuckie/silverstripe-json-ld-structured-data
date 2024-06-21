@@ -4,9 +4,6 @@ Name: silverstripe-json-ld-structured-data
 SilverStripe\CMS\Model\SiteTree:
   extensions:
     - LoveDuckie\SilverStripe\JsonLDStructuredData\Extensions\JsonLDStructuredDataExtension
-#SilverStripe\Security\Member:
-#  extensions:
-#    - LoveDuckie\SilverStripe\JsonLDStructuredData\Extensions\MemberJsonLDStructuredDataExtension
 
 LoveDuckie\SilverStripe\JsonLDStructuredData\Extensions\JsonLDStructuredDataExtension:
   breadcrumbs_list:

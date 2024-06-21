@@ -22,13 +22,22 @@ class JsonLDStructuredDataExtension extends DataExtension
         'PageStructuredData' => 'HTMLFragment'
     ];
 
-    public function PageStructuredData()
+    /**
+     * @return string
+     * @throws Exception
+     */
+    public function PageStructuredData(): string
     {
         $structuredDataContainer = [];
         return $this->InjectedStructuredData($structuredDataContainer);
     }
 
-    public static function generateBreadCrumbsFromController($controller)
+    /**
+     * @param $controller
+     * @return array|null
+     * @throws Exception
+     */
+    public static function generateBreadCrumbsFromController($controller): ?array
     {
         if (!($controller instanceof ContentController)) {
             throw new Exception("The object specified is not a controller");
@@ -47,7 +56,12 @@ class JsonLDStructuredDataExtension extends DataExtension
         return null;
     }
 
-    public static function generateBreadCrumbs($pageOrController)
+    /**
+     * @param $pageOrController
+     * @return array|null
+     * @throws Exception
+     */
+    public static function generateBreadCrumbs($pageOrController): ?array
     {
         if (!isset($pageOrController)) {
             throw new Exception("The page or controller instance was not defined.");
@@ -63,6 +77,13 @@ class JsonLDStructuredDataExtension extends DataExtension
         return $breadCrumbs;
     }
 
+    /**
+     * @param $page
+     * @param $includeHome
+     * @param $homeTitle
+     * @return array
+     * @throws Exception
+     */
     public static function generateBreadCrumbsFromSiteTree($page, $includeHome = true, $homeTitle = 'Home')
     {
         $breadCrumbs = [];
@@ -93,6 +114,11 @@ class JsonLDStructuredDataExtension extends DataExtension
         return $generatedBreadCrumbs;
     }
 
+    /**
+     * @param $breadCrumbs
+     * @return array
+     * @throws Exception
+     */
     public static function setBreadCrumbs($breadCrumbs)
     {
         $structuredBreadCrumbs = [
