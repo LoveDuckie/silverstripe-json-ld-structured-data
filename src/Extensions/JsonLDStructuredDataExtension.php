@@ -2,15 +2,16 @@
 
 namespace LoveDuckie\SilverStripe\JsonLDStructuredData\Extensions;
 
-use Exception;
+use Psr\Container\NotFoundExceptionInterface;
 use SilverStripe\ORM\DataExtension;
 use SilverStripe\Control\Director;
 use SilverStripe\Core\Config\Configurable;
 use SilverStripe\Core\Config\Config;
 use SilverStripe\SiteConfig\SiteConfig;
 use SilverStripe\CMS\Controllers\ContentController;
-
 use SilverStripe\CMS\Model\SiteTree;
+use SilverStripe\Core\Injector\Injector;
+use Psr\Log\LoggerInterface;
 
 class JsonLDStructuredDataExtension extends DataExtension
 {
@@ -18,218 +19,199 @@ class JsonLDStructuredDataExtension extends DataExtension
 
     private const SCHEMA_URL = "https://schema.org/";
 
+    /**
+     * @var array
+     */
+    private static array $default_config = [
+        'breadcrumbs_list' => [
+            'default_name' => 'Default Site',
+            'default_description' => 'Default Description',
+            'use_siteconfig_title_as_name' => true,
+            'use_siteconfig_tagline_as_description' => true,
+        ],
+        'tags' => [
+            'website' => ['enable' => true],
+            'breadcrumbs' => ['enable' => true],
+        ],
+    ];
+
     private static $casting = [
         'PageStructuredData' => 'HTMLFragment'
     ];
 
     /**
      * @return string
-     * @throws Exception
+     * @throws NotFoundExceptionInterface
      */
     public function PageStructuredData(): string
     {
-        $structuredDataContainer = [];
-        return $this->InjectedStructuredData($structuredDataContainer);
+        $structuredData = [];
+        $this->addWebSiteData($structuredData);
+        $this->addBreadCrumbsData($structuredData);
+
+        return $this->serializeStructuredData($structuredData);
     }
 
     /**
-     * @param $controller
-     * @return array|null
-     * @throws Exception
+     * @param array $structuredData
+     * @return void
      */
-    public static function generateBreadCrumbsFromController($controller): ?array
+    private function addWebSiteData(array &$structuredData): void
     {
-        if (!($controller instanceof ContentController)) {
-            throw new Exception("The object specified is not a controller");
+        $tagsConfig = self::getConfigValue('tags');
+        if ($tagsConfig['website']['enable']) {
+            $siteConfig = SiteConfig::current_site_config();
+            $structuredData[] = [
+                '@type' => 'WebSite',
+                'url' => Director::absoluteBaseURL(),
+                'name' => $siteConfig->Title,
+                'description' => $siteConfig->Tagline
+            ];
         }
+    }
 
-        $breadCrumbs = [];
-        if ($controller->hasMethod('generateBreadCrumbs')) {
-            $controller->generateBreadCrumbs($breadCrumbs);
-            if (!is_array($breadCrumbs)) {
-                throw new Exception("The breadCrumbs specified are invalid or null");
+    /**
+     * @param array $structuredData
+     * @return void
+     */
+    private function addBreadCrumbsData(array &$structuredData): void
+    {
+        $tagsConfig = self::getConfigValue('tags');
+        if ($tagsConfig['breadcrumbs']['enable']) {
+            $pageOrController = Director::get_current_page();
+            if ($pageOrController) {
+                $structuredData[] = self::generateBreadCrumbs($pageOrController);
             }
-
-            return $breadCrumbs;
         }
-
-        return null;
     }
 
     /**
      * @param $pageOrController
      * @return array|null
-     * @throws Exception
      */
-    public static function generateBreadCrumbs($pageOrController): ?array
+    private static function generateBreadCrumbs($pageOrController): ?array
     {
-        if (!isset($pageOrController)) {
-            throw new Exception("The page or controller instance was not defined.");
-        }
-
-        $breadCrumbs = null;
         if ($pageOrController instanceof ContentController) {
-            $breadCrumbs = static::generateBreadCrumbsFromController($pageOrController);
-        } else if ($pageOrController instanceof SiteTree) {
-            $breadCrumbs = static::generateBreadCrumbsFromSiteTree($pageOrController);
+            return self::generateBreadCrumbsFromController($pageOrController);
+        } elseif ($pageOrController instanceof SiteTree) {
+            return self::generateBreadCrumbsFromSiteTree($pageOrController);
         }
+        return null;
+    }
 
-        return $breadCrumbs;
+    /**
+     * @param $controller
+     * @return array|null
+     */
+    private static function generateBreadCrumbsFromController($controller): ?array
+    {
+        if ($controller->hasMethod('generateBreadCrumbs')) {
+            return $controller->generateBreadCrumbs([]);
+        }
+        return null;
     }
 
     /**
      * @param $page
-     * @param $includeHome
-     * @param $homeTitle
+     * @param true $includeHome
+     * @param string $homeTitle
      * @return array
-     * @throws Exception
      */
-    public static function generateBreadCrumbsFromSiteTree($page, $includeHome = true, $homeTitle = 'Home')
+    private static function generateBreadCrumbsFromSiteTree($page, true $includeHome = true, string $homeTitle = 'Home'): array
     {
-        $breadCrumbs = [];
-        $startingPage = $page;
+        $breadcrumbs = [];
 
-        if ($startingPage->hasMethod('generateBreadCrumbs')) {
-            $breadCrumbs = $startingPage->generateBreadCrumbs($breadCrumbs);
+        if ($page->hasMethod('generateBreadCrumbs')) {
+            $page->generateBreadCrumbs($breadcrumbs);
         }
 
         while ($page) {
-            $pageLink = $page->AbsoluteLink();
-            $pageTitle = $page->Title;
-            $breadCrumbs[] = [
-                'title' => $pageTitle,
-                'link' => $pageLink
+            $breadcrumbs[] = [
+                'title' => $page->Title,
+                'link' => $page->AbsoluteLink()
             ];
-            $page = $page->ParentID ? $page->Parent() : false;
+            $page = $page->ParentID ? $page->Parent() : null;
         }
 
-        if ($includeHome && $startingPage->URLSegment != 'home') {
-            $breadCrumbs[] = [
+        if ($includeHome && $homeTitle) {
+            $breadcrumbs[] = [
                 'title' => $homeTitle,
                 'link' => Director::absoluteBaseURL()
             ];
         }
 
-        $generatedBreadCrumbs = self::setBreadCrumbs(array_reverse($breadCrumbs));
-        return $generatedBreadCrumbs;
+        return self::formatBreadCrumbs(array_reverse($breadcrumbs));
     }
 
     /**
-     * @param $breadCrumbs
+     * @param array $breadcrumbs
      * @return array
-     * @throws Exception
      */
-    public static function setBreadCrumbs($breadCrumbs)
+    private static function formatBreadCrumbs(array $breadcrumbs): array
     {
-        $structuredBreadCrumbs = [
+        $structuredData = [
             '@type' => 'BreadcrumbList',
             'itemListElement' => []
         ];
-        $count = 1;
-        foreach ($breadCrumbs as $breadCrumbItem) {
-            $structuredBreadCrumbs['itemListElement'][] = [
+
+        foreach ($breadcrumbs as $index => $breadcrumb) {
+            $structuredData['itemListElement'][] = [
                 '@type' => 'ListItem',
-                'position' => $count,
+                'position' => $index + 1,
                 'item' => [
-                    '@id' => $breadCrumbItem['link'],
-                    'name' => $breadCrumbItem['title']
+                    '@id' => $breadcrumb['link'],
+                    'name' => $breadcrumb['title']
                 ]
             ];
-            $count++;
         }
 
-        $siteConfig = SiteConfig::current_site_config();
-
-        $siteTitle = $siteConfig->Title;
-        $siteTagline = $siteConfig->Tagline;
-
-        $breadCrumbsName = $siteTitle;
-        $breadCrumbsDescription = $siteTagline;
-
-        $config = Config::inst();
-
-        if (!isset($config)) {
-            throw new Exception("The configuration instance is invalid or null");
-        }
-
-        $breadcrumbsList = self::getConfigProperty('breadcrumbs_list');
-
-        $breadCrumbsName = $breadcrumbsList['default_name'];
-        $breadCrumbsDescription = $breadcrumbsList['default_description'];
-
-        $useSiteConfigTitleAsName = $breadcrumbsList['use_siteconfig_title_as_name'];
-        $useSiteConfigTaglineAsDescription = $breadcrumbsList['use_siteconfig_tagline_as_description'];
-
-        if (empty($breadCrumbsName) || $useSiteConfigTitleAsName) {
-            $breadCrumbsName = $siteTitle;
-        }
-        if (empty($breadCrumbsDescription) || $useSiteConfigTaglineAsDescription) {
-            $breadCrumbsDescription = $siteConfig->Tagline;
-        }
-
-        $structuredBreadCrumbs["name"] = $breadCrumbsName;
-        $structuredBreadCrumbs["description"] = $breadCrumbsDescription;
-
-        return $structuredBreadCrumbs;
+        return $structuredData;
     }
 
-    private static function getConfigProperty(string $propertyName)
+    /**
+     * @param string $key
+     * @param $default
+     * @return mixed|null
+     */
+    private static function getConfigValue(string $key, $default = null): mixed
     {
-        if (empty($propertyName)) {
-            throw new Exception("The name of the property was not defined. Unable to continue.");
-        }
-
-        return Config::inst()->get(JsonLDStructuredDataExtension::class, $propertyName);
+        $config = Config::inst()->get(JsonLDStructuredDataExtension::class, $key);
+        return $config ?? self::$default_config[$key] ?? $default;
     }
 
-    public function InjectedStructuredData(array &$structuredDataContainer)
+    /**
+     * @param array $structuredData
+     * @return string
+     * @throws NotFoundExceptionInterface
+     */
+    private function serializeStructuredData(array $structuredData): string
     {
-        if (!isset($structuredDataContainer)) {
-            throw new Exception("The structured data container is invalid or null");
-        }
-        $siteConfig = SiteConfig::current_site_config();
-
-        $siteTitle = $siteConfig->Title;
-        $siteTagline = $siteConfig->Tagline;
-
-        $tagsConfig = self::getConfigProperty('tags');
-        if ($tagsConfig['website']['enable']) {
-            $structuredDataContainer[] = [
-                "@type" => "WebSite",
-                "about" => [],
-                "url" => Director::absoluteBaseURL(),
-                "name" => $siteTitle,
-                "description" => $siteTagline
-            ];
+        foreach ($structuredData as &$item) {
+            $item['@context'] = self::SCHEMA_URL;
         }
 
-        $pageOrController = Director::get_current_page();
+        $flags = JSON_UNESCAPED_SLASHES | (Director::isDev() || Director::isTest() ? JSON_PRETTY_PRINT : 0);
+        $json = json_encode($structuredData, $flags);
 
-        if ($pageOrController) {
-            if ($tagsConfig['breadcrumbs']['enable']) {
-                $structuredDataContainer[] = JsonLDStructuredDataExtension::generateBreadCrumbs($pageOrController);
-            }
-            $pageOrController->extend('onInjectStructuredData', $structuredDataContainer);
+        if (!$json) {
+            $this->logError('Failed to serialize structured data to JSON.');
+            return '';
         }
 
-        for ($i = 0; $i < count($structuredDataContainer); $i++) {
-            $structuredDataContainer[$i]["@context"] = JsonLDStructuredDataExtension::SCHEMA_URL;
-        }
+        return <<<HTML
+<script type="application/ld+json">
+$json
+</script>
+HTML;
+    }
 
-        $jsonSerializationFlags = JSON_UNESCAPED_SLASHES;
-        if (Director::isTest() || Director::isDev()) {
-            $jsonSerializationFlags |= JSON_PRETTY_PRINT;
-        }
-        $serializedJson = json_encode($structuredDataContainer, $jsonSerializationFlags);
-        if (!isset($serializedJson)) {
-            throw new Exception("The serialized JSON is invalid or null");
-        }
-        $metaDataOutput = <<< EOF
-        <script type="application/ld+json">
-            $serializedJson
-        </script>
-        EOF;
-
-        return $metaDataOutput;
+    /**
+     * @param string $message
+     * @return void
+     * @throws NotFoundExceptionInterface
+     */
+    private static function logError(string $message)
+    {
+        Injector::inst()->get(LoggerInterface::class)->error($message);
     }
 }
