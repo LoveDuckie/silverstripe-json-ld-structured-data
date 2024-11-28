@@ -48,8 +48,15 @@ class JsonLDStructuredDataExtension extends DataExtension
         $structuredData = [];
         $this->addWebSiteData($structuredData);
         $this->addBreadCrumbsData($structuredData);
+        $this->addStructuredData($structuredData);
 
         return $this->serializeStructuredData($structuredData);
+    }
+
+    private function addStructuredData(array &$structuredData): void
+    {
+        $pageOrController = Director::get_current_page();
+        $pageOrController?->extend('onInjectStructuredData', $structuredData);
     }
 
     /**
