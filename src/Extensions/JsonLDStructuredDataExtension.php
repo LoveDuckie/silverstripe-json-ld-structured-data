@@ -3,7 +3,7 @@
 namespace LoveDuckie\SilverStripe\JsonLDStructuredData\Extensions;
 
 use Psr\Container\NotFoundExceptionInterface;
-use SilverStripe\ORM\DataExtension;
+use SilverStripe\Core\Extension;
 use SilverStripe\Control\Director;
 use SilverStripe\Core\Config\Configurable;
 use SilverStripe\Core\Config\Config;
@@ -13,7 +13,7 @@ use SilverStripe\CMS\Model\SiteTree;
 use SilverStripe\Core\Injector\Injector;
 use Psr\Log\LoggerInterface;
 
-class JsonLDStructuredDataExtension extends DataExtension
+class JsonLDStructuredDataExtension extends Extension
 {
     use Configurable;
 
