@@ -2,9 +2,9 @@
 
 namespace LoveDuckie\SilverStripe\JsonLDStructuredData\Extensions;
 
-use SilverStripe\ORM\DataExtension;
+use SilverStripe\Core\Extension;
 
-class JsonLDStructuredDataSiteTreeExtension extends DataExtension
+class JsonLDStructuredDataSiteTreeExtension extends Extension
 {
     public function onInjectStructuredData(&$structuredDataContainer)
     {
